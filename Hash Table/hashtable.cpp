@@ -2,7 +2,10 @@
 Owen Brunty
 4/22/21
 Hash Table
+
+Used article for refrence: https://www.journaldev.com/35238/hash-table-in-c-plus-plus
 */
+
 
 #include <iostream>
 #include <vector>
@@ -19,71 +22,87 @@ struct Student {
   float gpa;
 };
 
-class HashTable{
-    private:
-        int n;
-        //function that hashes students
-        int hashfunction(int n){
-            return Student.id % n;
-        }
-    
-    public:
-        //creaes hash table
-        HashTable(){
-            int n = 100;
-            Student hashtable[n];
-        }
-        //function that will add an entry for a new student
-        void add(vector<Student*> &studentvector) {
-          cout << "\n";
-          
-          studentvector.push_back(new Student());
-          cout << "What is the new student's first name?" << endl;
-          cin >> studentvector.back() -> firstname;
-        
-          cout << "What is the new student's last name?" << endl;
-          cin >> studentvector.back() -> lastname;
-          
-          cout << "What is the new student's id?" << endl;
-          cin >> studentvector.back() -> id;
-          
-          cout << "What is the new student's GPA?" << endl;
-          cin >> studentvector.back() -> gpa;
-        }
-        
-        //function that will print all curent student's and their information
-        void print(vector<Student*> studentvector) {
-          cout << "\n";
-          if (studentvector.empty()) {
-            cout << "No students are in the list." << endl;
-          }
-          for (std::vector<Student*>::iterator it = studentvector.begin(); it != studentvector.end(); it++){
-            cout << (*it) -> firstname << " " << (*it) -> lastname << ", " << (*it) -> id << ", " << fixed << setprecision(2) << (*it) -> gpa << endl;
-          }
-        }
-        
-        //function that will delete a student and their information
-        void del(vector<Student*> &studentvector) {
-          cout << "\n";
-          cout << "Enter the id of the student you want to remove from the list." << endl;
-          int delid;
-          cin >> delid;
-          for (std::vector<Student*>::iterator it = studentvector.begin(); it != studentvector.end(); ++it) {
-            int x = it - studentvector.begin();
-            if (delid == studentvector[x] -> id) {
-              delete  studentvector[x];
-              studentvector.erase(it);
-              cout << "Deleted student wtih id: " << (*it) -> id << endl;
-              break;
-            }
-          }
-        }
-        
-        //function that creates a list of randomly generated students
-        void random() {
-            
-        }
+struct HT_item {
+    char* key;
+    struct* value;
+};
+
+struct HashTable {
+    HT_item** items;
+    int n;
+    int size;
+};
+
+
+//function that hashes students
+int hashfunction(int n){
+    return Student.id % table -> size;
 }
+
+
+//creaes hash table
+HashTable* maketable(int size){
+    HashTable* table = (HashTable*)malloc(sizeof(HashTable));
+    table -> n =0;
+    table -> size = 100;
+    table -> items = (HT_item**)calloc(table -> size, HT_item*);
+
+    for(int i = 0; i < table -> size; i++) {
+        table -> items[i] = NULL;   
+    }
+}
+
+//function that will add an entry for a new student
+void add(HashTable* table, char* key, struct* value) {
+  cout << "\n";
+  
+  new Student currentStudent();
+  cout << "What is the new student's first name?" << endl;
+  cin >> currentStudent -> firstname;
+
+  cout << "What is the new student's last name?" << endl;
+  cin >> currentStudent -> lastname;
+  
+  cout << "What is the new student's id?" << endl;
+  cin >> currentStudent -> id;
+  
+  cout << "What is the new student's GPA?" << endl;
+  cin >> currentStudent -> gpa;
+}
+
+//function that will print all current student's and their information
+void print(vector<Student*> studentvector) {
+  cout << "\n";
+  if (studentvector.empty()) {
+    cout << "No students are in the list." << endl;
+  }
+  for (std::vector<Student*>::iterator it = studentvector.begin(); it != studentvector.end(); it++){
+    cout << (*it) -> firstname << " " << (*it) -> lastname << ", " << (*it) -> id << ", " << fixed << setprecision(2) << (*it) -> gpa << endl;
+  }
+}
+
+//function that will delete a student and their information
+void del(vector<Student*> &studentvector) {
+  cout << "\n";
+  cout << "Enter the id of the student you want to remove from the list." << endl;
+  int delid;
+  cin >> delid;
+  for (std::vector<Student*>::iterator it = studentvector.begin(); it != studentvector.end(); ++it) {
+    int x = it - studentvector.begin();
+    if (delid == studentvector[x] -> id) {
+      delete  studentvector[x];
+      studentvector.erase(it);
+      cout << "Deleted student wtih id: " << (*it) -> id << endl;
+      break;
+    }
+  }
+}
+
+//function that creates a list of randomly generated students
+void random() {
+    
+}
+
 
 
 int main() {
