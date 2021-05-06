@@ -2,13 +2,12 @@
 Owen Brunty
 4/22/21
 Hash Table
-
 Used article for refrence: https://www.journaldev.com/35238/hash-table-in-c-plus-plus
 */
 
 
 #include <iostream>
-#include <vector>
+#include <list>
 #include <cstring>
 #include <iomanip>
 
@@ -22,38 +21,22 @@ struct Student {
   float gpa;
 };
 
-struct HT_item {
-    char* key;
-    struct* value;
-};
-
-struct HashTable {
-    HT_item** items;
-    int n;
-    int size;
-};
+//Makes a list of students the hash table
+list<Student> *HashTable;
+int size = HashTable -> size;
 
 
 //function that hashes students
 int hashfunction(int n){
-    return Student.id % table -> size;
+    return Student.id % size;
 }
 
-
-//creaes hash table
-HashTable* maketable(int size){
-    HashTable* table = (HashTable*)malloc(sizeof(HashTable));
-    table -> n =0;
-    table -> size = 100;
-    table -> items = (HT_item**)calloc(table -> size, HT_item*);
-
-    for(int i = 0; i < table -> size; i++) {
-        table -> items[i] = NULL;   
-    }
+void rehash(){
+    
 }
 
 //function that will add an entry for a new student
-void add(HashTable* table, char* key, struct* value) {
+void add() {
   cout << "\n";
   
   new Student currentStudent();
@@ -68,10 +51,14 @@ void add(HashTable* table, char* key, struct* value) {
   
   cout << "What is the new student's GPA?" << endl;
   cin >> currentStudent -> gpa;
+  
+  //inserts the new student into the hash table
+  int index = hashfunction(currentStudent);
+  HashTable[index].push_back(currentStudent);
 }
 
 //function that will print all current student's and their information
-void print(vector<Student*> studentvector) {
+void print() {
   cout << "\n";
   if (studentvector.empty()) {
     cout << "No students are in the list." << endl;
@@ -82,19 +69,17 @@ void print(vector<Student*> studentvector) {
 }
 
 //function that will delete a student and their information
-void del(vector<Student*> &studentvector) {
+void del(int key) {
   cout << "\n";
   cout << "Enter the id of the student you want to remove from the list." << endl;
   int delid;
   cin >> delid;
-  for (std::vector<Student*>::iterator it = studentvector.begin(); it != studentvector.end(); ++it) {
-    int x = it - studentvector.begin();
-    if (delid == studentvector[x] -> id) {
-      delete  studentvector[x];
-      studentvector.erase(it);
-      cout << "Deleted student wtih id: " << (*it) -> id << endl;
-      break;
-    }
+  int index = delid % size;
+  for (list<Student>::iterator it = HashTable[index].begin(); it!= HashTable[index].end(); it++) {
+      if (*it == key) {
+          HashTable[index].erase(it);
+          break;
+      }
   }
 }
 
