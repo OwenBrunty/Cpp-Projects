@@ -23,11 +23,12 @@ struct Student {
 
 //Makes a list of students the hash table
 list<Student> *HashTable;
+std::HashTable = new list<Student>[100];
 int size = HashTable -> size;
 
 
 //function that hashes students
-int hashfunction(int n){
+int hashfunction(struct Student){
     return Student.id % size;
 }
 
@@ -60,23 +61,29 @@ void add() {
 //function that will print all current student's and their information
 void print() {
   cout << "\n";
-  if (studentvector.empty()) {
+  if (size == 0) {
     cout << "No students are in the list." << endl;
   }
-  for (std::vector<Student*>::iterator it = studentvector.begin(); it != studentvector.end(); it++){
-    cout << (*it) -> firstname << " " << (*it) -> lastname << ", " << (*it) -> id << ", " << fixed << setprecision(2) << (*it) -> gpa << endl;
+  for (int i = 0; i < size; i++){
+    for (list<Student>::iterator it = HashTable[i].begin(); it!= HashTable[i].end(); it++) {
+        cout << "\n";
+        cout << *it.firstname << " " << *it.lastname << ", " << *it.id << ", " << fixed << setprecision(2) << *it.gpa;
+        if (HashTable[i].size > 1) {
+            cout << " --> ";
+        }
+    }
   }
 }
 
 //function that will delete a student and their information
-void del(int key) {
+void del() {
   cout << "\n";
   cout << "Enter the id of the student you want to remove from the list." << endl;
   int delid;
   cin >> delid;
   int index = delid % size;
   for (list<Student>::iterator it = HashTable[index].begin(); it!= HashTable[index].end(); it++) {
-      if (*it == key) {
+      if (*it.id == delid) {
           HashTable[index].erase(it);
           break;
       }
@@ -95,7 +102,7 @@ int main() {
   bool loop = true;
   char input[10];
 
-  vector<Student*> studentvector;
+  ;
 
   //loop that runs until user enters "QUIT"
   while (loop){
@@ -107,13 +114,13 @@ int main() {
 	loop = false;
       }
     else if (strcmp(input, "ADD") == 0) {
-      add(studentvector);
+      add();
 	}
     else if (strcmp(input, "PRINT") == 0) {
-      print(studentvector);
+      print();
 	}
     else if (strcmp(input, "DELETE") == 0) {
-      del(studentvector);
+      del();
 	}
 	else if (strcmp(input, "RANDOM") == 0) {
 	    random();
