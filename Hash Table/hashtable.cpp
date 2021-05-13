@@ -42,6 +42,7 @@ void rehash(HashTable){
                newHashTable[index].push_back(*it);
         }
     }
+    HashTable = newHashTable;
 }
 
 //function that will add an entry for a new student
