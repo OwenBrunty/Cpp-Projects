@@ -23,8 +23,8 @@ struct Student {
 
 //Makes a list of students the hash table
 list<Student> *HashTable;
-std::HashTable = new list<Student>[100];
-int size = HashTable -> size;
+HashTable = new list<Student>[100];
+int size = 100;
 
 
 //function that hashes students
@@ -32,8 +32,16 @@ int hashfunction(struct Student){
     return Student.id % size;
 }
 
-void rehash(){
+void rehash(HashTable){
+    newHashTable = new list<Student>[size*2];
+    size = size*2;
     
+    for (int i = 0; i < size; i++){
+        for (list<Student>::iterator it = HashTable[i].begin(); it!= HashTable[i].end(); it++) {
+               int index = hashfunction(*it);
+               newHashTable[index].push_back(*it);
+        }
+    }
 }
 
 //function that will add an entry for a new student
