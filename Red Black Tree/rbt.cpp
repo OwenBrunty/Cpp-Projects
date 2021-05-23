@@ -316,7 +316,7 @@ void printtreehelper(node* np, string prefix){
     color = "B";
     }
   printtreehelper(np-> rightchild, prefix + "   ");
-  cout << prefix << color <<" " << np->data << " " << endl;
+  cout << prefix << color << np->data << " " << endl;
   printtreehelper(np-> leftchild, prefix + "   ");
 }
 
