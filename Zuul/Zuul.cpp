@@ -163,7 +163,7 @@ void createItems(vector<Item*> itemvect) {
 
     Item* lint = (new Item());
     itemvect.push_back(lint);
-    lint -> name = lint;
+    lint -> name = ball of lint;
     lint -> id = 3;
     lint -> roomid = 6;
 
@@ -204,41 +204,135 @@ void printRoom(vector<Room*> roomvect, vector<Item*> itemvect, int currentRoom) 
         cout << "Exits: " << endl;
 	cout << it -> second << " " << endl;
       }
+      cout << "You look around and see the following stuff: " << endl;
+      for (vector<Item*>::iterator j = itemvect.begin(); j != itemvect.end(); j++) {
+	if ((*j) -> roomid == currentroom) {
+	  cout << (*j) -> name << endl;
+	}
+      }
     }
   }
 }
 
 void takeItem(vector<Room*> roomvect, vector<Item*> itemvect, vector<int>* inventory, int currentRoom, string object) {
-  
+  for (vector<Room*>::iterator it = roomvect.begin(); it != roomvect.end(); it++) {
+    if (*(*it) -> getID() == currentRoom) {
+      for (vector<Item*>::iterator i = itemvect.begin(); i != itemvect.end(); i++) {
+	if(((*i) -> roomid == (*it)->getID()) && ((strcmp(object, (*i) -> name) == 0))) {
+	  cout << "You grab a " << (*i) -> name; << " off the ground and put it in your pocket." << endl; 
+	  inventory->push_back((*i)-> id);
+	  (*i) -> roomid = 0;
+	}
+      }
+    }
+  }
 }
 
-void dropItem(vector<Room*> roomvect, vector<Item*> itemvect, vector<int>* inventory,int currentRoom, string object) {
-
+void dropItem(vector<Room*> roomvect, vector<Item*> itemvect, vector<int>* inventory,int currentRoom) {
+  cout << "What item do you want to leave behind?" << endl;
+  cin >> object;
+  for (vector<Item*>::iterator i = itemvect.begin(); i != itemvect.end(); i++) {
+    if (strcmp((*i) ->name, object) == 0) {
+      for (vector<int>::iterator it = inventory.begin(); it != inventory.end(); it++) {
+	if ((*it) == (*i)->id;) {
+	  cout << "You take the " << (*i) -> name << " out of your pocket and drop it on the ground." << endl;
+	  intventory->erase(it);
+	  (*i)-> roomid = currentRoom;
+	  break;
+	}
+      }
+    }
+  }
 }
 
 void printInventory(vector<Item*> itemvect, vector<int> inventory) {
-
+  cout << "You check your pockets and find: " << endl;
+  for (vector<int>::iterator it = inventory.begin(); it != inventory.end(); it++) {
+    for (vector<Item*>::iterator i = itemvect.begin(); i != itemvect.end(); i++) {
+      if ((*i)->id == *it) {
+	cout << (*i) -> name << endl;
+      }
+    }
+  }
 }
 		    
 int main() {
   bool playing = true;
-  
+  char input[10];
+  int currentroom = 1;
+  vector<Room*> roomvect;
+  vector<Item*> itemvect;
+  vector<int> inventory;
+  setRooms(&roomvect);
+  setItems(&itemvect);
 
+  cout << "You are playing Zuul. You are trapped in Sunset High School and are doing everything you can to escape. To play enter 'move' to move from room to room, 'pickup' to pickup a nearby item, 'drop' to drop an item from your inventory, 'inventory' to check your\
+ inventory, 'help' to see how to play, or 'quit' to leave the game. Good luck." << endl;
 
-  while(playing) {
-   
+  while (playing) {
 
+    printRoom(&roomvect, &itemvect, currentroom);
+    cout << "What do you want to do?" << endl;
+    cin >> input;
     
+    if (strcmp("quit", input) == 0) {
+      char quit[5];
+      cout << "You have selected to quit, you will lose your progress. Are you sure you want to do this?" << endl;
+      cin >> quit;
+      if (strcmp("yes", quit) == 0) {
+	playing = false;
+      }
+      else if (strcmp("no", quit) == 0) {
+	cout << "Ok, the game will not stop." << endl;
+      }
+      else {
+	cout << "Please either enter 'yes' or 'no'." << endl;
+      }
+    }
     
+    else if (strcmp("help", input) == 0) {
+      cout << "You are playing Zuul. You are trapped in Sunset High School and are doing everything you can to escape. To play enter 'move' to move from room to room, 'pickup' to pickup a nearby item, 'drop' to drop an item from your inventory, 'inventory' to check your inventory, 'help' to see how to play, or 'quit' to leave the game. Good luck." << endl;
+    }
+
+    else if (strcmp("move", input) == 0) {
+      cout << "You get the urge to move to a different room, but which direction do you go?" << endl;
+      cin >> input;
+      if (move(&roomvect, currentroom, input) == 0) {
+	cout << "You run into a wall and feel stupid, realizing that there is no room in the direction you just tried to go." << endl;
+      }
+      else if () {
+	currentRoom = move(&roomvect, currentRoom, input);
+      }
+      else if ((move(&roomvect, currentroom, input) == 16) && (inventory.size() != 5)) {
+	cout << "Cheif, the campus monitor stops you. 'Sorry, you cant leave until school's out... unless you have something for me.'" << endl;
+	cout << "Maybe if you come back with 5 items you find thoughout the school you could bribe cheif and get out of here." << endl;
+      }
+      else if ((move(&roomvect, currentroom, input) == 16) && (inventory.size() == 5)) {
+	cout << "Cheif, the campus monitor stops you. 'Sorry, you cant leave until school's out... unless you ha- oh whats that you have?'" << endl;
+	cout << "'Hmm, ok fine ill take it... you can pass.'" << endl;
+	currentroom = 16;
+	printRoom(&roomvect, &itemvect, currentroom);
+	cout << "You did it. You finally did it. You escaped Sunset and beat Zuul, congratulations." << endl;
+	playing = false;
+      }
+    }
+
+    else if (strcmp("inventory", input) == 0) {
+      printInventory(&itemvect, inventory);
+    }
+    
+    else if (strcmp("drop", input) == 0) {
+      dropItem(&roomvect, &itemvect, &inventory, currentRoom);
+    }
+
+    else if (strcmp("pickup", input) == 0) {
+      cout << "You think to yourself, 'What item do I want to pick up?'" << endl;
+      cin >> input;
+      takeItem(&roomvect, &itemvect, &inventory, currentroom, input);
+    }
+
+
   }
-
 }
 
-  //function that prints a list of the rooms
-  void printRooms(vector<Room*> newvect) {
-    for (vector<Room*>::iterator it = newvect.begin(); it != newvect.end(); it++) {
-      cout << *(*it) << endl;
-      //cout << *(*it)->getDescription() << endl;
-    }
-  }
 
