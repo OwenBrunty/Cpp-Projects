@@ -1,0 +1,740 @@
+/*
+Rbt deletion
+Owen Brunty
+*/
+
+#include <iostream>
+#include <cstring>
+#include <fstream>
+using namespace std;
+
+enum colors{red, black, doubleblack};
+
+typedef struct nodestruct {
+  int data;
+  struct nodestruct* rightchild;
+  struct nodestruct* leftchild;
+  struct nodestruct* parent;
+  enum colors color;
+  int dbl = -1; //keeps track of which NULL child (0 for left, 1 for right, -1 neither) is double black 
+}node;
+
+node *root = NULL;
+
+//add function
+node* addnoderecurs(node** pointer, node* parent, int x) {
+  if (*pointer == NULL) {
+    node* newnode = new node;
+    newnode -> data = x;
+    newnode -> rightchild = NULL;
+    newnode -> leftchild = NULL;
+    newnode -> dbl = -1;
+    if (parent == NULL) {
+      newnode -> color = black;
+    }
+    else {
+      newnode-> color = red;
+    }
+    newnode -> parent = parent;
+    *pointer = newnode;
+    return newnode;
+  }
+  if ((*pointer)->data > x) {
+    return addnoderecurs(&((*pointer)-> leftchild), *pointer, x);
+  }
+  else {
+    return addnoderecurs(&((*pointer)-> rightchild), *pointer, x);
+  }
+}
+
+//find a nodes uncle
+node* uncle(node* k){
+  if (k == NULL){
+    cout << "shouldn't happen 1" << endl;
+    return NULL;
+  }
+  if (k->parent == NULL) {
+    cout << "shouldn't happen 2" << endl;
+    return NULL;
+  }
+  node* grand = k->parent->parent;
+  if (grand == NULL) {
+    cout << "shouldn't happen 3" << endl;
+    return NULL;
+  }
+  if (grand->leftchild == k->parent) {
+    return grand->rightchild;
+  }
+  if(grand->rightchild == k->parent) {
+    return grand->leftchild;
+  }
+  else {
+    cout << "Node parent is not grand's child: " << k->data << endl;
+    return NULL;
+  }
+}
+
+//change parent child pointers
+void childreplace(node* p, node* from, node* to) {
+  if (from->parent == NULL) {
+    return;
+  }
+  if (p->leftchild == from) {
+    if (to != NULL) {
+      //cout << p << " left will now be: " << to << endl;
+    }
+    p->leftchild = to;
+    to->parent = p;
+  }
+  else if (p->rightchild == from) {
+    if (to != NULL) {
+      //cout << p->data << " right will now be: " << to->data << endl;
+    }
+
+    p->rightchild = to;
+    to->parent = p;
+  }
+  else {
+    cout << "childreplace from parent doesnt have from as child" << endl;
+  }
+}
+
+//to keep track of a double black child that is null
+node* doubleblacknullchild(node* p, node* from) {
+  if (from->parent == NULL) {
+    return NULL;
+  }
+  if (p->leftchild == from) {
+    p->leftchild = NULL;
+    p->dbl = 0;
+    return p->rightchild;
+  }
+  else if (p->rightchild == from) {
+    p->rightchild = NULL;
+    p->dbl = 1;
+    return p->leftchild;
+  }
+  else {
+    cout << "childreplace from parent doesnt have from as child" << endl;
+    return NULL;
+  }
+}
+
+//fix pointers between child and parent
+void fixparent(node* g) {
+  if (g->rightchild != NULL) {
+    g->rightchild->parent = g;
+  }
+  if (g->leftchild != NULL) {
+    g->leftchild->parent = g;
+  }
+}
+
+void restoretree(node* k) {
+  node * p = k-> parent;
+  //case 1: case parent is black, nothing violated so nothing to do
+  if (p -> color == black) {
+    return;
+  }
+  //case 2: case parent is red
+  node* s = uncle(k);
+  //case 2a: null or black uncle
+  if ((s == NULL) || (s->color == black)) {
+    node* g= p-> parent;
+    //case 2a -1
+    if ((k->data <= p->data) && (p-> data <= g->data)) {
+      g->leftchild = p->rightchild;
+      g-> rightchild = s;
+      node* gp = g->parent;
+      fixparent(g);
+      g->color = red;
+      
+      p->rightchild = g;
+      p->leftchild = k;
+      fixparent(p);
+      p-> parent = gp;
+      p->color = black;
+
+      if (gp == NULL) {
+	root = p;
+      }
+      else {
+	childreplace(gp, g, p);
+      }
+    }
+    //case 2a - 2
+    else if ((k->data > p->data) && (p-> data <= g->data)) {
+      g->leftchild = NULL;
+      g-> rightchild = s;
+      node* gp = g->parent;
+      fixparent(g);
+      g->color = red;
+
+      p->rightchild = NULL;
+
+      k->leftchild = p;
+      k->rightchild = g;
+      k-> parent = gp;
+      k-> color = black;
+      fixparent(k);
+      if (gp == NULL) {
+        root = k;
+      }
+       else {
+        childreplace(gp, g, k);
+      }
+    }
+    //case 2a - 3
+    if ((k->data > p->data) && (p-> data > g->data)) {
+      g->rightchild = p->leftchild;
+      g-> leftchild = s;
+      node* gp = g->parent;
+      fixparent(g);
+      g->color = red;
+
+      p->leftchild = g;
+      p->rightchild = k;
+      fixparent(p);
+      p-> parent = gp;
+      p->color = black;
+
+      if (gp == NULL) {
+        root = p;
+      }
+       else {
+        childreplace(gp, g, p);
+      }
+    }
+
+    //case 2a - 4
+    else if ((k->data <= p->data) && (p-> data > g->data)) {
+      g->rightchild = NULL;
+      g-> leftchild = s;
+      node* gp = g->parent;
+      fixparent(g);
+      g->color = red;
+
+      p->leftchild = NULL;
+
+      k->rightchild = p;
+      k->leftchild = g;
+      k-> parent = gp;
+      k-> color = black;
+      fixparent(k);
+      if (gp == NULL) {
+        root = k;
+      }
+       else {
+        childreplace(gp, g, k);
+      }
+    }
+  }
+  else {
+    //case 2b: k's uncle is red
+    node* g= p-> parent;
+    p->color = black;
+    s->color = black;
+    if (g != root) {
+      g->color = red;
+      if(g->parent->color == red) {
+	restoretree(g);
+      }
+    }
+  }
+}
+
+//function to make inputting what to add cleaner
+void addnode(int x) {
+  node* newnode = addnoderecurs(&root, NULL, x);
+  if (newnode->parent == NULL) {
+    return;
+  }
+  restoretree(newnode);
+}
+
+
+//function that searchest for the right most child, which is the largest number
+int rightmostchild(node* np) {
+  if (np -> rightchild != NULL) {
+    return rightmostchild(np-> rightchild);
+  }
+  else {
+    return np->data;
+  }
+}
+
+//finds a node's sibling
+node* sibling(node* np) {
+   if (np->parent == NULL) {
+    return NULL;
+  }
+  if (np->parent->leftchild == np) {
+    return np->parent->rightchild;
+  }
+  else if (np-> parent->rightchild == np) {
+    return np->parent->leftchild;
+  }
+  else {
+    cout << "sibling called from parent doesnt have from as child" << endl;
+    return NULL;
+  }
+}
+
+void repairtree(node* u, node* p, node* s) {
+  //cout << "into repair" << endl;
+  if (u == root) {
+    u->color = black;
+    return;
+  }
+  if (s == NULL) {
+    //sibling is NULL and black
+    p-> dbl = -1;
+    if (p->parent != NULL) {
+          p->color = doubleblack;
+          repairtree(p, p->parent, sibling(p));
+    }
+  }
+  //case 3.2: if sibling is black
+  else if ((s != NULL) && (s->color == black)) {
+    //cout << "case3.2" << endl;
+    node* r = NULL;
+    int bothred = 0;
+    //siblings left child is red
+    if ((s->leftchild != NULL) && (s->leftchild->color == red)) {
+      r = s->leftchild;
+    }
+    //siblings right child is red
+    if ((s->rightchild != NULL) && (s->rightchild->color == red)) {
+      if (r!= NULL) {
+	bothred = 1;
+      }
+      else {
+	r = s->rightchild;
+      }
+    }
+    //case 3.2a: black sibling has a red child
+    if (r != NULL) {
+      //cout << "case 3.2a" << endl;
+      node* gp = p->parent;
+      if (u != NULL) {
+        u->color = black;
+      }
+      else {
+        p->dbl = -1;
+      }
+
+      //right right
+      if ((p->rightchild == s) && (s-> rightchild == r)) {
+	r->color = black;
+	p->rightchild = s->leftchild;
+	fixparent(p);
+	s->leftchild = p;
+	fixparent(s);
+	s->parent = gp;
+	if (gp == NULL) {
+	  root = s;
+	  s->parent = NULL;
+	}
+	else {
+	  childreplace(gp, p, s);
+	}
+      }
+      //right left
+      else if ((p->rightchild == s) && (s-> leftchild == r)) {
+	r->color = black;
+	p->rightchild = r->leftchild;
+	fixparent(p);
+	s->leftchild = r->rightchild;
+	fixparent(s);
+	r->rightchild = s;
+	r-> leftchild = p;
+	fixparent(r);
+	if (gp == NULL) {
+          root = r;
+	  r->parent = NULL;
+        }
+        else {
+          childreplace(gp, p, r);
+        }
+
+      }
+      //left right
+      else if ((p->leftchild == s) && (s-> rightchild == r)) {
+	r->color = black;
+        p->leftchild = r->rightchild;
+        fixparent(p);
+        s->rightchild = r->leftchild;
+        fixparent(s);
+        r->leftchild = s;
+        r-> rightchild = p;
+        fixparent(r);
+        if (gp == NULL) {
+          root = r;
+	  r->parent = NULL;
+        }
+        else {
+          childreplace(gp, p, r);
+        }
+      }
+      //left left
+      else if ((p->leftchild == s) && (s-> leftchild == r)) {
+	r->color = black;
+        p->leftchild = s->rightchild;
+        fixparent(p);
+        s->rightchild = p;
+        fixparent(s);
+        s->parent = gp;
+        if (gp == NULL) {
+          root = s;
+	  s->parent = NULL;
+	}
+        else {
+          childreplace(gp, p, s);
+        }
+      }
+    }
+    //case 3.2b: black sibling with black children
+    else {
+      if (u != NULL) {
+	 u->color = black;
+       }
+       else {
+        p->dbl = -1;
+      }
+      s->color = red;
+      if (p->color == red) {
+	p->color = black;
+      }
+      else {
+	if (p->parent != NULL) {
+	  p->color = doubleblack;
+	  repairtree(p, p->parent, sibling(p));
+	}
+      }
+    }
+  }
+  //case 3.2c: sibling is red
+  else {
+    node* gp = p->parent;
+    //right case
+    if (p->rightchild == s) {
+      p->leftchild = NULL;
+      p->dbl = -1;
+      p->rightchild = s->leftchild;
+      if (p->rightchild != NULL) {
+	p->rightchild->color = red;
+      }
+      fixparent(p);
+      s->leftchild = p;
+      fixparent(s);
+      s->color = black;
+      s->parent = gp;
+        if (gp == NULL) {
+          root = s;
+          s->parent = NULL;
+        }
+        else {
+          childreplace(gp, p, s);
+        }
+    }
+    //left case
+    else {
+      p->rightchild = NULL;
+      p->dbl = -1;
+      p->leftchild = s->rightchild;
+      if (p->leftchild != NULL) {
+        p->leftchild->color = red;
+      }
+      fixparent(p);
+      s->rightchild = p;
+      fixparent(s);
+      s->color = black;
+      s->parent = gp;
+        if (gp == NULL) {
+          root = s;
+          s->parent = NULL;
+        }
+        else {
+          childreplace(gp, p, s);
+        }
+    }
+  }
+}
+
+//delete function 
+void deletenoderecurs(node** npp, int x) {
+  if (*npp == NULL) {
+    return;
+  }
+  node* p = (*npp)->parent;
+  node* u = NULL;
+  node* s = NULL;
+  int repair = 0;
+  if ((*npp) -> data == x) {
+    //no child case
+    if ((*npp) -> rightchild == NULL && ((*npp)-> leftchild == NULL)) {
+      if ((*npp)->color == black) {
+	s = doubleblacknullchild((*npp)->parent, *npp);
+        repair = 1;
+      }
+      else {
+	*npp = NULL;
+      }
+    }
+    //left child case
+    else if ((*npp) -> rightchild == NULL) {
+      //if black and child black
+      if (((*npp)->color == black) && ((*npp)->leftchild->color == black)) {
+	(*npp)->leftchild->color = doubleblack;
+	u = (*npp)->leftchild;
+	s = sibling(*npp);
+	repair = 1;
+      }
+      //if black and child red
+      else if (((*npp)->color == black) && ((*npp)->leftchild->color == red)) {
+	(*npp)->leftchild->color = black;
+      }
+      (*npp) = (*npp)->leftchild;
+      (*npp)->parent = p;
+    }
+    //right child case
+    else if ((*npp)-> leftchild == NULL) {
+      //if black and child black
+      if (((*npp)->color == black) && ((*npp)->rightchild->color == black)) {
+        (*npp)->rightchild->color = doubleblack;
+	u = (*npp)->rightchild;
+        s = sibling(*npp);
+        repair = 1;
+      }
+      //if black and child red
+      else if (((*npp)->color == black) && ((*npp)->rightchild->color == red)) {
+        (*npp)->rightchild->color = black;
+      }
+      *npp = (*npp)-> rightchild;
+      (*npp)->parent = p;
+    }
+    //two child
+    else {
+      int temp = rightmostchild((*npp)->leftchild);
+      (*npp)->data = temp;
+      deletenoderecurs(&((*npp) -> leftchild), temp);
+    }
+  }
+  //if not at right node
+  else {
+    //if x is smaller than current node then recurse down the left
+    if (x < (*npp)->data) {
+      deletenoderecurs(&((*npp) -> leftchild), x);
+    }
+    //if x is bigger than current node then recurse down the right
+    else {
+      deletenoderecurs(&((*npp)-> rightchild), x);
+    }
+  }
+  //if need to repair then call repairtree
+  if (repair == 1) {
+    repairtree(u, p, s);
+  }
+}
+
+//function to make inputting what to delete cleaner
+void deletenode(int x) {
+  deletenoderecurs(&root, x);
+}
+
+//search function
+bool searchhelper(node* np, int x) {
+  if (np == NULL) {
+    return false;
+  }
+  if (np-> data == x) {
+    return true;
+  }
+  else if (np -> data > x) {
+    return searchhelper(np-> leftchild, x);
+  }
+  else {
+    return searchhelper(np-> rightchild, x);
+  }
+}
+
+//function to make inputting what to search cleaner
+bool search(int x) {
+  return searchhelper(root, x);
+}
+
+//function that prints if the node was found or not
+void checkfor(int x) {
+  cout << "Checking for: " << x << "    ";
+  if (search(x)) {
+    cout << "Found in tree" << endl;
+  }
+  else {
+    cout << "Could not find in tree" << endl;
+  }
+}
+
+
+
+
+//get the numbers for the tree
+void input() {
+  cout << "Enter name of file containing numbers or type 'manual' to manually enter numbers." << endl;
+  char file[20];
+  cin >> file;
+  //get the file by name
+  ifstream numberfile;
+  numberfile.open(file);
+  //if file not found
+  if (!numberfile) {
+    if (strcmp(file, "manual") != 0) {
+      cout << "File not found: " << file << "          Switching to manual input" << endl;
+    }
+    //manual number entry
+    cout << "Enter a number to add to the heap, enter '-1' nothing when you are finished" << endl;
+    bool inputting = true;
+    while(inputting) {
+      int input;
+      cin >> input;
+      if (input == -1) {
+        cout << "Stopping insertion." << endl;
+        inputting = false;
+      }
+      else {
+        addnode(input);
+      }
+    }
+  }
+  else {
+    //if file is found
+    int temp;
+    while (numberfile >> temp) {
+      addnode(temp);
+    }
+  }
+}
+
+//function used for debugging
+int validatesubtree(node* np){
+  if (np == NULL) {
+    return 1;
+  }
+  int rv = 1;
+  if (np->rightchild != NULL) {
+    if (np->rightchild->parent != np) {
+      cout << np->data << " has right child: " << np->rightchild->data << " that doesn't point back" << endl;
+      return 0;
+    }
+    rv = rv*validatesubtree(np-> rightchild);
+  }
+  if (np->leftchild != NULL) {
+    if (np->leftchild->parent != np) {
+      cout << np->data << " has left child: " << np->leftchild->data << " that doesn't point back" << endl;
+      return 0;
+    }
+    rv = rv*validatesubtree(np-> leftchild);
+  }
+  return rv;
+}
+
+
+
+//print function
+void printtreehelper(node* np, string prefix){
+  if (np == NULL) {
+    return;
+  }
+  string color;
+  if (np->color == red) {
+    color = "R";
+  }
+  else if (np->color == doubleblack) {
+    color = "DB";
+  }
+  else {
+    color = "B";
+    }
+  printtreehelper(np-> rightchild, prefix + "   ");
+  cout << prefix << color << np->data << " ";
+  if (np->dbl != -1) {
+    cout << "dbl=" << np->dbl;
+  }
+  cout << endl;
+  printtreehelper(np-> leftchild, prefix + "   ");
+}
+
+//function to make print function in main cleaner
+void printtree() {
+  printtreehelper(root, "");
+}
+
+/*used for debugging
+int main2() {
+  for (int i=0; i < 100; i++) {
+    addnode(i);
+  }
+  for(int i=0; i<100; i+=2) {
+    cout << "deleteing: " << i << endl;
+    deletenode(i);
+  }
+  printtree();
+  return 1;
+}
+*/
+
+int main(){
+  bool playing = true;
+  cout << "To use the binary search tree, type add to add a number, del to delete a number, search to search for a number, print to print the tree, or quit to stop the program." << endl;
+  cout << endl;
+  input();
+  printtree();
+  char input[20];
+  while (playing) {
+    //read in an input and call a function accordingly
+    cin >> input;
+    //add a number
+    if (strcmp(input, "add") == 0) {
+      cout << "Enter the number you want to add to the tree." << endl;
+      int x;
+      cin >> x;
+      addnode(x);
+      cout << "Added " << x << " to the tree." << endl;
+    }
+    //delete a number
+    else if (strcmp(input, "del") == 0) {
+      cout << "Enter the number you want to delete from the tree." << endl;
+      int x;
+      cin >> x;
+      deletenode(x);
+      cout << "Deleted " << x << " from the tree." << endl;
+    }
+    //search for a number
+    else if (strcmp(input, "search") == 0) {
+      cout << "Enter the number you want to search for." << endl;
+      int x;						    				    
+      cin >> x;
+      checkfor(x);
+    }
+    //print tree
+    else if (strcmp(input, "print") == 0) {
+      cout << "Printing the tree." << endl;
+      printtree();
+    }
+    //quit program
+    else if (strcmp(input, "quit") == 0) {
+      cout<< "Do you want to quit the program? If so enter 'yes'." << endl;
+      char quit[5];
+      cin >> quit;
+      if (strcmp(quit, "yes") == 0) {
+	playing = false;	
+      }
+      else {
+	cout << "The program will continue." << endl;
+      }
+    }
+    //unrecognized input
+    else {
+      cout << "Command not recognized." << endl;
+    }
+  }
+}
