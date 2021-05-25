@@ -1,6 +1,8 @@
 /*
 Rbt deletion
 Owen Brunty
+
+Used website for algorithms: https://www.geeksforgeeks.org/red-black-tree-set-3-delete-2/
 */
 
 #include <iostream>
