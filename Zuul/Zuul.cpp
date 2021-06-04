@@ -247,7 +247,7 @@ void printRoom(vector<Room*> &roomvect, vector<Item*> &itemvect, int currentRoom
       map<int, string*> exit = *(*it) -> getExits();
       cout << "Exits: " << endl;
       for (map<int, string*>::const_iterator i = exit.begin(); i != exit.end(); i++) {//printing exits
-	cout << *i -> second << '\t';
+	cout << i -> second << '\t';
       }
       cout << endl;
       cout << "You look around and see the following stuff: " << endl;
